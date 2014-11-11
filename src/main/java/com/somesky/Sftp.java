@@ -7,6 +7,7 @@ import java.util.Properties;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
@@ -15,6 +16,7 @@ public class Sftp {
 	private Session sshSession;
 	private Channel channel;
 	private ChannelSftp sftp;
+	private JSch jsch;
 	/**
 	 * 连接sftp服务器
 	 * 
@@ -27,30 +29,35 @@ public class Sftp {
 	 * @param password
 	 *            密码
 	 * @return
+	 * @throws JSchException 
 	 */
-	public ChannelSftp connect(String host, int port, String username,
-			String password) {
-		try {
-			JSch jsch = new JSch();
-			jsch.getSession(username, host, port);
-			sshSession = jsch.getSession(username, host, port);
-			System.out.println("Session created.");
-			sshSession.setPassword(password);
-			Properties sshConfig = new Properties();
-			sshConfig.put("StrictHostKeyChecking", "no");
-			sshSession.setConfig(sshConfig);
-			sshSession.connect();
-			System.out.println("Session connected.");
-			System.out.println("Opening Channel.");
-			channel = sshSession.openChannel("sftp");
-			channel.connect();
-			sftp = (ChannelSftp) channel;
-			System.out.println("Connected to " + host + ".");
-		} catch (Exception e) {
-
-		}
+	public ChannelSftp connect(String host, int port, String username) throws JSchException {
+		sshSession=jsch.getSession(username, host, port);
+		Properties sshConfig = new Properties();
+		sshConfig.put("StrictHostKeyChecking", "no");
+		sshSession.setConfig(sshConfig);
+		sshSession.connect();
+		channel = sshSession.openChannel("sftp");
+		channel.connect();
+		sftp = (ChannelSftp) channel;
+		System.out.println("Connected to " + host + ".");
 		return sftp;
 	}
+	
+	public void connectWithIdentify(String host, int port, String username,
+			String key) throws JSchException {
+		jsch = new JSch();
+		jsch.addIdentity(key);
+		sftp=connect(host,port,username);
+	}
+	
+	public void connectWithPasswd(String host, int port, String username,
+			String password) throws JSchException {
+		jsch = new JSch();
+		sshSession.setPassword(password);
+		sftp=connect(host,port,username);
+	}
+
 
 	public void close(){
 		sftp.exit();
@@ -67,7 +74,7 @@ public class Sftp {
 	 *            要上传的文件
 	 * @param sftp
 	 */
-	public void uploadFile(String destDirectory, String sourceFile, ChannelSftp sftp) {
+	public void uploadFile(String destDirectory, String sourceFile) {
 		try {
 			File file = new File(sourceFile);
 			System.out.println("destDirectory:"+destDirectory);
@@ -78,7 +85,7 @@ public class Sftp {
 		}
 	}
 	
-	public void uploadDirectory(String destDirectory, String sourceDirectory, ChannelSftp sftp) {
+	public void uploadDirectory(String destDirectory, String sourceDirectory) {
 		String baseDir=destDirectory;
 		String curPath="";
 		File sourceFile=new File(sourceDirectory);
@@ -91,10 +98,10 @@ public class Sftp {
 				curPath=getPath(sourceDirectory,itemFile.getAbsolutePath());
 				String remotePath=baseDir+curPath;
 				cdRemoteDirectory(remotePath);
-				uploadDirectory(remotePath,itemFile.getPath(),sftp);
+				uploadDirectory(remotePath,itemFile.getPath());
 			}else{
 				cdRemoteDirectory(baseDir);
-				uploadFile(baseDir,itemFile.getAbsolutePath(),sftp);
+				uploadFile(baseDir,itemFile.getAbsolutePath());
 			}
 		}
 	}
@@ -126,6 +133,7 @@ public class Sftp {
 		dir=dir.replace("\\", "/");
 		if(dir.endsWith("/")) dir=dir.substring(0,dir.length()-1);
 		int index=dir.lastIndexOf('/');
+		if(index<1) return dir; 
 		return dir.substring(0,index);
 	}
 	
@@ -136,8 +144,9 @@ public class Sftp {
 		return curPath;
 	}
 
-	public static void main(String[] args) {
-		Sftp sf = new Sftp();
+	public static void main(String[] args) throws JSchException {
+		
+		/*Sftp sf = new Sftp();
 		String host = "192.168.206.154";
 		int port = 49171;
 		String username = "root";
@@ -146,6 +155,18 @@ public class Sftp {
 		String source="F:/opensource/crm/target/crm-0.0.1-SNAPSHOT";
 		ChannelSftp sftp = sf.connect(host, port, username, password);
 		sf.uploadDirectory(directory, source, sftp);
+		sf.close();*/
+		
+		Sftp sf = new Sftp();
+		String host="10.0.0.70";
+		String user="root";
+      // String passwd="76712144";
+        String key="C:/Users/Administrator/Desktop/key/prox/id_rsa";
+        int port=22;
+		String directory = "/tmp";
+		String source="F:/opensource/crm/target/crm-0.0.1-SNAPSHOT";
+		sf.connectWithIdentify(host, port, user, key);
+		sf.uploadDirectory(directory, source);
 		sf.close();
 	}
 }

@@ -13,16 +13,28 @@ import com.jcraft.jsch.Session;
 public class Exec{
 	
 	private Session session;
+	private JSch jsch;
 	
-	public void connect(String host, int port, String user,
-			String password) throws JSchException {
-		JSch jsch=new JSch();  
+	public void connect(String host, int port, String user) throws JSchException {
 		session=jsch.getSession(user, host, port);
-		session.setPassword(password);
 		Properties sshConfig = new Properties();
 		sshConfig.put("StrictHostKeyChecking", "no");
 		session.setConfig(sshConfig);
 		session.connect();
+	}
+	
+	public void connectWithPasswd(String host, int port, String user,
+			String password) throws JSchException {
+		jsch=new JSch();  
+		session.setPassword(password);
+		connect(host,port,user);
+	}
+	
+	public void connectWithIdentify(String host, int port, String user,
+			String key) throws JSchException {
+		jsch=new JSch(); 
+		jsch.addIdentity(key);
+		connect(host,port,user);
 	}
 	
 	public void close(){
@@ -77,13 +89,14 @@ public class Exec{
 	}
 
 	  public static void main(String[] arg) throws Exception{
-		  String host="192.168.206.154";
+		  String host="10.0.0.70";
 	      String user="root";
-	      String passwd="76712144";
+	      // String passwd="76712144";
+	      String key="C:/Users/Administrator/Desktop/key/prox/id_rsa";
 	      int port=22;
 	      Exec exec=new Exec();
-	      exec.connect(host, port, user, passwd);
-	      Result r=exec.exec("ls");
+	      exec.connectWithIdentify(host, port, user, key);
+	      Result r=exec.exec("ps -ef");
 	      System.out.println("Msg:"+r.msg);
 	      System.out.println("Error:"+r.err);
 	      System.out.println("Status:"+r.status);

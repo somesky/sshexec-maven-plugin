@@ -51,9 +51,13 @@ public class ExecMojo extends AbstractMojo {
 	/**
 	 * 
      * @parameter 
-     * @required
      */
 	private String passwd;
+	/**
+	 * 
+     * @parameter 
+     */
+	private String identify;
 	/**
 	 * 
      * @parameter 
@@ -79,11 +83,26 @@ public class ExecMojo extends AbstractMojo {
 		} 
 	}
 	
-	public void upload() throws JSchException, IOException{
+	public void upload() throws JSchException, IOException, MojoExecutionException{
 		Log log=this.getLog();
+		boolean hasKey=true;
+		boolean hasPasswd=true;
+		if(identify!=null&&!identify.equals("")){
+			hasKey=true;
+		}
+		if(passwd!=null&&!passwd.equals("")){
+			hasPasswd=true;
+		}
+		if(!hasKey&&!hasPasswd){
+			throw new MojoExecutionException("can not find passwd or identify set:");
+		}
 		
 		Exec exec=new Exec();
-	    exec.connect(host, port, user, passwd);
+	    if(hasKey){
+	    	exec.connectWithIdentify(host, port, user, identify);
+	    }else{
+	    	exec.connectWithPasswd(host, port, user, passwd);
+	    }
 		
 		if(precommands!=null){
 		    Result ret=new Result();
@@ -104,9 +123,13 @@ public class ExecMojo extends AbstractMojo {
 				+"\\target\\"+artifactId+"-"+version;
 		log.info("source dir:"+source);
 		Sftp sf = new Sftp();
-		ChannelSftp sftp = sf.connect(host, port, user, passwd);
+		if(hasKey){
+			sf.connectWithIdentify(host, port, user, identify);
+	    }else{
+	    	sf.connectWithPasswd(host, port, user, passwd);
+	    }
 		log.info("destDirectory:"+destDirectory);
-		sf.uploadDirectory(destDirectory, source, sftp);
+		sf.uploadDirectory(destDirectory, source);
 		sf.close();
 		
 		if(commands!=null){
