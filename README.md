@@ -3,7 +3,7 @@ sshexec-maven-plugin
 
 基于Jsch的ssh的文件上传和命令执行的插件
 
-pom.xml配置
+pom.xml配置<br/>
 &lt;plugin&gt; <br/>
 &nbsp;&lt;groupId&gt;com.somesky&lt;/groupId&gt;<br/>
 &nbsp;&lt;artifactId&gt;sshexec&lt;/artifactId&gt;<br/>
