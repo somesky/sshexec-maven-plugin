@@ -15,26 +15,27 @@ public class Exec{
 	private Session session;
 	private JSch jsch;
 	
-	public void connect(String host, int port, String user) throws JSchException {
+	public void createSession(String host, int port, String user) throws JSchException {
 		session=jsch.getSession(user, host, port);
 		Properties sshConfig = new Properties();
 		sshConfig.put("StrictHostKeyChecking", "no");
 		session.setConfig(sshConfig);
-		session.connect();
 	}
 	
 	public void connectWithPasswd(String host, int port, String user,
 			String password) throws JSchException {
-		jsch=new JSch();  
+		jsch=new JSch();
+		createSession(host,port,user);
 		session.setPassword(password);
-		connect(host,port,user);
+		session.connect();
 	}
 	
 	public void connectWithIdentify(String host, int port, String user,
 			String key) throws JSchException {
 		jsch=new JSch(); 
+		createSession(host,port,user);
 		jsch.addIdentity(key);
-		connect(host,port,user);
+		session.connect();
 	}
 	
 	public void close(){
@@ -89,13 +90,19 @@ public class Exec{
 	}
 
 	  public static void main(String[] arg) throws Exception{
-		  String host="10.0.0.70";
+		 /* String host="10.0.0.70";
 	      String user="root";
 	      // String passwd="76712144";
-	      String key="C:/Users/Administrator/Desktop/key/prox/id_rsa";
+	      String key="C:/Users/Administrator/Desktop/key/prox/id_rsa";*/
+		  
+		  String host="10.0.0.75";
+	      String user="root";
+	       String passwd="shichangbu123";
+	     // String key="C:/Users/Administrator/Desktop/key/prox/id_rsa";
+		  
 	      int port=22;
 	      Exec exec=new Exec();
-	      exec.connectWithIdentify(host, port, user, key);
+	      exec.connectWithPasswd(host, port, user, passwd);
 	      Result r=exec.exec("ps -ef");
 	      System.out.println("Msg:"+r.msg);
 	      System.out.println("Error:"+r.err);

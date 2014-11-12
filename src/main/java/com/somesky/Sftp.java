@@ -31,7 +31,7 @@ public class Sftp {
 	 * @return
 	 * @throws JSchException 
 	 */
-	public ChannelSftp connect(String host, int port, String username) throws JSchException {
+	public ChannelSftp createSession(String host, int port, String username) throws JSchException {
 		sshSession=jsch.getSession(username, host, port);
 		Properties sshConfig = new Properties();
 		sshConfig.put("StrictHostKeyChecking", "no");
@@ -48,14 +48,14 @@ public class Sftp {
 			String key) throws JSchException {
 		jsch = new JSch();
 		jsch.addIdentity(key);
-		sftp=connect(host,port,username);
+		sftp=createSession(host,port,username);
 	}
 	
 	public void connectWithPasswd(String host, int port, String username,
 			String password) throws JSchException {
 		jsch = new JSch();
 		sshSession.setPassword(password);
-		sftp=connect(host,port,username);
+		sftp=createSession(host,port,username);
 	}
 
 
