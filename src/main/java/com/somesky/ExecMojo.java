@@ -85,8 +85,8 @@ public class ExecMojo extends AbstractMojo {
 	
 	public void upload() throws JSchException, IOException, MojoExecutionException{
 		Log log=this.getLog();
-		boolean hasKey=true;
-		boolean hasPasswd=true;
+		boolean hasKey=false;
+		boolean hasPasswd=false;
 		if(identify!=null&&!identify.equals("")){
 			hasKey=true;
 		}
