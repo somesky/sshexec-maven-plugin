@@ -31,31 +31,34 @@ public class Sftp {
 	 * @return
 	 * @throws JSchException 
 	 */
-	public ChannelSftp createSession(String host, int port, String username) throws JSchException {
+	public void createSession(String host, int port, String username) throws JSchException {
 		sshSession=jsch.getSession(username, host, port);
 		Properties sshConfig = new Properties();
 		sshConfig.put("StrictHostKeyChecking", "no");
 		sshSession.setConfig(sshConfig);
+	}
+	
+	public void connect() throws JSchException {
 		sshSession.connect();
 		channel = sshSession.openChannel("sftp");
 		channel.connect();
 		sftp = (ChannelSftp) channel;
-		System.out.println("Connected to " + host + ".");
-		return sftp;
 	}
 	
 	public void connectWithIdentify(String host, int port, String username,
 			String key) throws JSchException {
 		jsch = new JSch();
 		jsch.addIdentity(key);
-		sftp=createSession(host,port,username);
+		createSession(host,port,username);
+		connect();
 	}
 	
 	public void connectWithPasswd(String host, int port, String username,
 			String password) throws JSchException {
 		jsch = new JSch();
+		createSession(host,port,username);
 		sshSession.setPassword(password);
-		sftp=createSession(host,port,username);
+		connect();
 	}
 
 
